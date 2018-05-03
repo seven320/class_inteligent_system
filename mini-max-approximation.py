@@ -7,15 +7,14 @@ def min_tree(N,M,now):#Bの手番
     value=1
     for i in range(M):
         new=now+i+1
-        #葉っぱの先端
-        if(N<new):
+        if(N<new):#子なし
             pass
-        else:
-            if(N==new):
+        else:#子あり
+            if(N==new):#子の端
                 if(value>=1):
                     value=1
                 else:pass
-            else:
+            else:#子の先を探索
                 value1=max_tree(N,M,new)
                 if(value>=value1):
                     value=value1
@@ -26,26 +25,31 @@ def max_tree(N,M,now):
     value=-10
     for i in range(M):
         new=now+i+1
-        #葉っぱの先端
-        if(N<new):
+        if(N<new):#子なし
             pass
-        else:
-            if(N==new):
+        else:#子あり
+            if(N==new):#子の端
                 if(value<=-1):
                     value=-1
                 else:pass
-            else:
+            else:#子の先を探索
                 value1=min_tree(N,M,new)
                 if(value<=value1):
                     value=value1
                 else:pass
     return value
-#１ターンに行っていい最大数をM
-M=2
+
+print()
+
+def which_win(N,M):
+    win=max_tree(N,M,0)
+    print("M={0},N={1}の場合は".format(M,N))
+    if win==1:
+        print("先手必勝")
+    else:
+        print("後手必勝")
+#１ターンに言っていい最大数をM
 #相手に言わせたい数をNとする。
-N=6
-# その段階の深さをｋ
-k=0
 #その段階で言っている数字をnow
-now=0
-print(max_tree(N,M,0))
+for i in range(9,16):
+    which_win(N=i,M=4)
