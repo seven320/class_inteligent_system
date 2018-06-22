@@ -1,4 +1,3 @@
-
 #encoding utf-8
 #
 
@@ -13,13 +12,47 @@ Y=6
 # Q=[[[0]*4]*(X+2)]*(Y+2)
 Q=[[[0 for i in range(4)] for j in range(X+2)] for k in range(Y+2)]
 
+def r_value(x,y,dir):
+    r=0
+    if dir==0:
+        y-=1
+    elif dir==1:
+        x+=1
+    elif dir==2:
+        y+=1
+    elif dir==3:
+        x-=1
+    #goal sel\tting
+    goal_1=[5,4]
+    goal_2=[2,5]
+    if goal_1==[x,y]:
+        r=2
+    elif goal_2==[x,y]:
+        r=1
+    #wall setting
+    out_wall=[]
+    judge=0
+    for i in range(X+1):
+        out_wall.append([0,i])
+        out_wall.append([X+1,i])
+    for i in range(Y+1):
+        out_wall.append([i,0])
+        out_wall.append([i,Y+1])
+    in_wall=[[2,2],[3,2],[4,2],[5,2],[3,4],[3,5],[5,5],[5,6]]
+    for j in range(len(out_wall)):
+        if out_wall[j]==[x,y]:
+            r=-0.1
+    for i in range(len(in_wall)):
+        if in_wall[i]==[x,y]:
+            r=-0.1
+    return r
+
+
 # Q値の更新
 def new_Q(Q,x,y,dir):
     a=0.1
     ganma=0.9
-    r=0
-    if (x==4 and y==4 and dir==1)or(x==5 and y==3 and dir==2)or(x==6 and y==4 and dir==3)or(x==5 and y==5 and dir==0):
-        r=1
+    r=r_value(x,y,dir)
     x_n=x
     y_n=y
     if dir==0:
@@ -39,13 +72,13 @@ def new_Q(Q,x,y,dir):
 
 def dir_limit(x,y):
     dir=[0,1,2,3]
-    if x==1:
+    if x==0:
         dir.remove(3)
-    if x==X:
+    if x==X+1:
         dir.remove(1)
-    if y==1:
+    if y==0:
         dir.remove(0)
-    if y==Y:
+    if y==Y+1:
         dir.remove(2)
     # print("limit:",dir)
     return dir
@@ -58,15 +91,20 @@ def p_select(epsilon):
 
 def decide_dir(Q,x,y):
     #epsiron-greedy
-    epsilon=0.5
+    epsilon=0.7
     xy=[]
     xy_max=[]
     limit=dir_limit(x,y)
+    # print(limit)
+    # limit=[0,1,2,3]
     ran=random.random()
-    max_Q=0
+    max_Q=-10
     for i in range(len(limit)):
+        # print(Q[x][y][limit[i]])
         if max_Q<Q[x][y][limit[i]]:
             max_Q=Q[x][y][limit[i]]
+    if max_Q==-10:
+        print("errorrrrr")
     for i in range(len(limit)):
         if max_Q==Q[x][y][limit[i]]:
             xy_max.append(limit[i])
@@ -160,7 +198,6 @@ def decide_dir(Q,x,y):
         if len(xy_max)==1:
             dir=xy_max[0]
     else: print("error")
-    # print(dir)
     return dir
 
 def turn(x,y,status):
@@ -179,12 +216,14 @@ def turn(x,y,status):
     elif dir==3:
         x-=1
     if x==5 and y==4:
-        # print("clear")
+        clear=1
+    elif x==2 and y==5:
         clear=1
     return x,y,status,clear
 
 def screen(Q):
     count=0
+    try_1=0
     X=800
     Y=800
     cell_size=X/8
@@ -193,7 +232,8 @@ def screen(Q):
     pygame.display.set_caption("Q-learning")
     # A=np.zeros((int(X/cell_size),int(Y/cell_size)))
     x,y=1,1
-    status=0
+    status=1
+
     while(1):
         screen.fill((0,0,0))
         #vertical line
@@ -224,58 +264,33 @@ def screen(Q):
                 q_x=i*cell_size+cell_size/2
                 q_y=j*cell_size+cell_size/2
                 for k in range(len(Q[i][j])):
+                    #color
+                    if Q[i][j][k]>=0:
+                        color=(0,95,0)
+                    else:
+                        color=(150,0,0)
                     #直線で表す
                     if k==0:
-                        pygame.draw.line(screen,(0,95,0),(q_x,q_y-(Q[i][j][k]*(cell_size/2))),(q_x,q_y),3)
+                        pygame.draw.line(screen,color,(q_x,q_y-(abs(Q[i][j][k])*(cell_size/4))),(q_x,q_y),3)
                     elif k==1:
-                        pygame.draw.line(screen,(0,95,0),(q_x,q_y),(q_x+(Q[i][j][k]*(cell_size/2)),q_y),3)
+                        pygame.draw.line(screen,color,(q_x,q_y),(q_x+(abs(Q[i][j][k])*(cell_size/4)),q_y),3)
                     elif k==2:
-                        pygame.draw.line(screen,(0,95,0),(q_x,q_y),(q_x,q_y+(Q[i][j][k]*(cell_size/2))),3)
+                        pygame.draw.line(screen,color,(q_x,q_y),(q_x,q_y+(abs(Q[i][j][k])*(cell_size/4))),3)
                     elif k==3:
-                        pygame.draw.line(screen,(0,95,0),(q_x-(Q[i][j][k]*(cell_size/2)),q_y),(q_x,q_y),3)
+                        pygame.draw.line(screen,color,(q_x-(abs(Q[i][j][k])*(cell_size/4)),q_y),(q_x,q_y),3)
         pygame.display.update()
         if status==1:
             x,y,status,clear=turn(x,y,status)
+            try_1+=1
+            print("x,y",x,y)
             if clear==1:
                 x,y=1,1
                 clear=not(clear)
                 count+=1
-                print("回数:",count)
+                print("回数:",count,"試行回数:",try_1)
+                try_1=0
         elif status==0:
             pass
-
-# def epoc(Q):
-#     #初期化
-#     x=1
-#     y=1
-#     count=0
-#     while(1):
-#         count+=1
-#         a=0
-#         # print(x,y)
-#         dir=decide_dir(Q,x,y)
-#         # print("dir",dir)
-#         Q[x][y][dir]=new_Q(Q,x,y,dir)
-#         if dir==0:
-#             y-=1
-#         elif dir==1:
-#             x+=1
-#         elif dir==2:
-#             y+=1
-#         elif dir==3:
-#             x-=1
-#
-#         if x==5 and y==4:
-#             print("clear")
-#             break
-#     return Q,count
-
-# def main(Q):
-    # for i in range(10):
-    #     Q,count=copy.deepcopy(epoc(Q))
-    #     print("epoc:",i)
-    #     print("count:",count)
-
 
 if __name__=="__main__":
     # main(Q)

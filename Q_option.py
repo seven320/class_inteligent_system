@@ -27,8 +27,8 @@ def r_value(x,y,dir):
     goal_2=[2,5]
     if goal_1==[x,y]:
         r=2
-    # elif goal_2==[x,y]:
-    #     r=1
+    elif goal_2==[x,y]:
+        r=1
     #wall setting
     out_wall=[]
     judge=0
@@ -38,13 +38,13 @@ def r_value(x,y,dir):
     for i in range(Y+1):
         out_wall.append([i,0])
         out_wall.append([i,Y+1])
-    # in_wall=[[2,2],[3,2],[4,2],[5,2],[3,4],[3,5],[5,5],[5,6]]
+    in_wall=[[2,2],[3,2],[4,2],[5,2],[3,4],[3,5],[5,5],[5,6]]
     for j in range(len(out_wall)):
         if out_wall[j]==[x,y]:
             r=-0.1
-    # for i in range(len(in_wall)):
-    #     if in_wall[i]==[x,y]:
-    #         r=-0.1
+    for i in range(len(in_wall)):
+        if in_wall[i]==[x,y]:
+            r=-0.5
     return r
 
 
@@ -80,7 +80,7 @@ def dir_limit(x,y):
         dir.remove(0)
     if y==Y+1:
         dir.remove(2)
-    # print("limit:",dir)
+    print("limit:",dir)
     return dir
 
 def p_select(epsilon):
@@ -217,31 +217,30 @@ def turn(x,y,status):
         x-=1
     if x==5 and y==4:
         clear=1
-    # elif x==2 and y==5:
-    #     clear=1
+    elif x==2 and y==5:
+        clear=1
     return x,y,status,clear
 
 def screen(Q):
     count=0
     try_1=0
-    X=800
-    Y=800
-    cell_size=X/8
+    screen_x=800
+    screen_y=800
+    cell_size=screen_x/8
     pygame.init()
-    screen=pygame.display.set_mode((X,Y))
+    screen=pygame.display.set_mode((screen_x,screen_y))
     pygame.display.set_caption("Q-learning")
     # A=np.zeros((int(X/cell_size),int(Y/cell_size)))
     x,y=1,1
     status=1
-
     while(1):
         screen.fill((0,0,0))
         #vertical line
-        for i in range(int(X/cell_size)):
-            pygame.draw.line(screen,(0,95,0),(i*cell_size,0),(i*cell_size,Y),1)
+        for i in range(int(screen_x/cell_size)):
+            pygame.draw.line(screen,(0,95,0),(i*cell_size,0),(i*cell_size,screen_y),1)
         #horizontal line
-        for j in range(int(Y/cell_size)):
-            pygame.draw.line(screen,(0,95,0),(0,j*cell_size),(X,j*cell_size),1)
+        for j in range(int(screen_y/cell_size)):
+            pygame.draw.line(screen,(0,95,0),(0,j*cell_size),(screen_x,j*cell_size),1)
         for event in pygame.event.get():
             #終了用イベント
             if event.type==QUIT:
@@ -270,21 +269,24 @@ def screen(Q):
                     else:
                         color=(150,0,0)
                     #直線で表す
-                    if k==0:
-                        pygame.draw.line(screen,color,(q_x,q_y-(abs(Q[i][j][k])*(cell_size/4))),(q_x,q_y),3)
-                    elif k==1:
-                        pygame.draw.line(screen,color,(q_x,q_y),(q_x+(abs(Q[i][j][k])*(cell_size/4)),q_y),3)
-                    elif k==2:
-                        pygame.draw.line(screen,color,(q_x,q_y),(q_x,q_y+(abs(Q[i][j][k])*(cell_size/4))),3)
-                    elif k==3:
-                        pygame.draw.line(screen,color,(q_x-(abs(Q[i][j][k])*(cell_size/4)),q_y),(q_x,q_y),3)
+                    if Q[i][j][k]==max(Q[i][j]):
+                        if k==0:
+                            pygame.draw.line(screen,color,(q_x,q_y-(abs(Q[i][j][k])*(cell_size/4))),(q_x,q_y),3)
+                        elif k==1:
+                            pygame.draw.line(screen,color,(q_x,q_y),(q_x+(abs(Q[i][j][k])*(cell_size/4)),q_y),3)
+                        elif k==2:
+                            pygame.draw.line(screen,color,(q_x,q_y),(q_x,q_y+(abs(Q[i][j][k])*(cell_size/4))),3)
+                        elif k==3:
+                            pygame.draw.line(screen,color,(q_x-(abs(Q[i][j][k])*(cell_size/4)),q_y),(q_x,q_y),3)
         pygame.display.update()
         if status==1:
             x,y,status,clear=turn(x,y,status)
             try_1+=1
             print("x,y",x,y)
             if clear==1:
-                x,y=1,1
+                # x,y=1,1
+                x=random.randint(0,X+1)
+                y=random.randint(0,Y+1)
                 clear=not(clear)
                 count+=1
                 print("回数:",count,"試行回数:",try_1)
